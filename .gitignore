@@ -1,0 +1,29 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# data is large or personal (replays, captures, scrapes, derived stats)
+data/*
+!data/beatmaps/
+!data/replays/
+data/beatmaps/*
+data/replays/*
+!data/beatmaps/.gitkeep
+!data/replays/.gitkeep
+
+# capture + training logs
+logs/
+
+# per-session notebook outputs (contain absolute paths + capture artifacts)
+notebooks/phase3/
+
+# model artifacts
+checkpoints/
+runs/
+*.pt
+*.ckpt
+
+# secrets
+.env
+.env.local

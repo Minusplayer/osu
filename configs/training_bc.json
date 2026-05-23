@@ -1,0 +1,79 @@
+{
+  "_doc": [
+    "Phase 5 behavioral-cloning training config. Knob choices justified in 'notes'.",
+    "Edit deliberately — every value here is load-bearing for Phase 6 training."
+  ],
+  "model": {
+    "module": "src_std.model_bc",
+    "class": "BCPolicy",
+    "config": {
+      "frame_h": 60,
+      "frame_w": 80,
+      "stack_len": 4,
+      "k_tokens": 12,
+      "obj_features": 8,
+      "map_d_model": 96,
+      "map_layers": 2,
+      "map_heads": 6,
+      "map_ff": 192,
+      "state_features": 4,
+      "state_hidden": 32,
+      "vision_out_dim": 384,
+      "fusion_hidden": 256,
+      "fusion_out": 128,
+      "cursor_dim": 2,
+      "press_dim": 1,
+      "dropout": 0.1
+    }
+  },
+  "loss": {
+    "cursor_loss": "smooth_l1",
+    "cursor_scale_px": 384.0,
+    "cursor_weight": 1.0,
+    "press_loss": "bce_with_logits",
+    "press_weight": 1.0,
+    "press_pos_weight": 0.56
+  },
+  "optim": {
+    "type": "adamw",
+    "lr": 3e-4,
+    "weight_decay": 1e-4,
+    "betas": [0.9, 0.999],
+    "grad_clip": 1.0
+  },
+  "schedule": {
+    "epochs": 40,
+    "batch_size": 64,
+    "warmup_steps": 200,
+    "lr_decay": "cosine"
+  },
+  "data": {
+    "sessions_dir": "data/sessions",
+    "label_window_ms": 60,
+    "gap_ms": 2000,
+    "val_frac": 0.1,
+    "val_split": "by_segment"
+  },
+  "notes": {
+    "press_pos_weight_rationale": [
+      "Aggregate press_positive_rate = 0.642 across 3 sessions (Rift Walker 77.9%,",
+      "Candy Luv 63.2%, Vespera Stella 57.6%). Hit-window labels include the full",
+      "duration of sliders + spinners (not just heads), so positives dominate. To",
+      "prevent the model from collapsing to 'always press', we DOWN-weight positives.",
+      "pos_weight ~= neg_freq / pos_freq = (1 - 0.642) / 0.642 ~= 0.558, rounded to 0.56.",
+      "Was 0.3 when only Rift Walker (77.9%) was in the dataset; retuned for the broader mix."
+    ],
+    "label_window_ms_rationale": [
+      "Phase 3 clock-fit residual sigma was 46 ms on the main play segment.",
+      "+/-60 ms ~= 1.5 sigma — minimum safe window that does not mislabel hit frames as no-press."
+    ],
+    "frame_resolution_rationale": [
+      "Model input is 80x60 (W x H). This matches Neuro's documented vision input and",
+      "preserves the osu! playfield's 4:3 aspect ratio (square 96x96 squashed it).",
+      "Capture pipeline stores 96x96 PNG-equivalent frames; dataset resizes to 80x60",
+      "via PIL.BILINEAR at build/load time. 80x60 is a clean 16x downsample from the",
+      "1280x960 capture region and yields smaller activations / fewer vision params",
+      "(~427K vs ~525K at 96x96) while keeping the model in the 750K-1M target band."
+    ]
+  }
+}

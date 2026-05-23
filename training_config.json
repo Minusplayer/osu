@@ -1,0 +1,28 @@
+{
+  "capture": {
+    "region": "316,60 1280x960",
+    "frame_hz": 30,
+    "frame_size": [
+      96,
+      96
+    ],
+    "grim_path": "grim"
+  },
+  "keys": {
+    "k1": "z",
+    "k2": "x"
+  },
+  "tosu": {
+    "precise_url": "ws://127.0.0.1:24050/websocket/v2/precise",
+    "v2_url": "ws://127.0.0.1:24050/websocket/v2",
+    "precise_poll_ms": 10,
+    "common_poll_ms": 50
+  },
+  "session": {
+    "out_dir": "data/sessions",
+    "gameplay_state_names": [
+      "play"
+    ],
+    "require_mode_std": true
+  }
+}

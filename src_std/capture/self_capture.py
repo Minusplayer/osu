@@ -260,6 +260,15 @@ def main():
                         help="Capture a single session then exit.")
     parser.add_argument("--max-seconds", type=float, default=0,
                         help="Hard cap on a single session in seconds (0 = no cap).")
+    parser.add_argument("--preview", action="store_true",
+                        help="Write the AI-perspective frame (96x96 gray) to "
+                             "--preview-path every --preview-every frames. "
+                             "Watch with e.g. `feh --reload 1 /tmp/aiosu_preview.png`.")
+    parser.add_argument("--preview-path", type=Path,
+                        default=Path("/tmp/aiosu_preview.png"))
+    parser.add_argument("--preview-every", type=int, default=3,
+                        help="Write a preview every N frames (default 3 = ~10Hz at 30Hz capture).")
+    parser.add_argument("--preview-upscale", type=int, default=4)
     args = parser.parse_args()
 
     cfg = load_config()
@@ -358,6 +367,20 @@ def main():
                     tick += 1
                     continue
                 gray96 = downsample_to_gray(rgb, out_size)
+
+                if args.preview and (tick % max(1, args.preview_every) == 0):
+                    try:
+                        ph, pw = gray96.shape
+                        up = max(1, args.preview_upscale)
+                        pim = Image.fromarray(gray96, mode="L").resize(
+                            (pw * up, ph * up), Image.NEAREST)
+                        tmp = args.preview_path.with_name(
+                            args.preview_path.stem + ".tmp" + args.preview_path.suffix)
+                        args.preview_path.parent.mkdir(parents=True, exist_ok=True)
+                        pim.save(tmp)
+                        tmp.replace(args.preview_path)
+                    except Exception as e:
+                        log.warning("preview write failed: %s", e)
 
                 if snap_pre.precise_recv_mono_ns > 0:
                     map_age = t_ns_pre - snap_pre.precise_recv_mono_ns

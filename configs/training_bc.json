@@ -32,7 +32,7 @@
     "cursor_weight": 1.0,
     "press_loss": "bce_with_logits",
     "press_weight": 1.0,
-    "press_pos_weight": 0.56
+    "press_pos_weight": 0.57
   },
   "optim": {
     "type": "adamw",
@@ -56,12 +56,12 @@
   },
   "notes": {
     "press_pos_weight_rationale": [
-      "Aggregate press_positive_rate = 0.642 across 3 sessions (Rift Walker 77.9%,",
-      "Candy Luv 63.2%, Vespera Stella 57.6%). Hit-window labels include the full",
-      "duration of sliders + spinners (not just heads), so positives dominate. To",
-      "prevent the model from collapsing to 'always press', we DOWN-weight positives.",
-      "pos_weight ~= neg_freq / pos_freq = (1 - 0.642) / 0.642 ~= 0.558, rounded to 0.56.",
-      "Was 0.3 when only Rift Walker (77.9%) was in the dataset; retuned for the broader mix."
+      "Aggregate press_positive_rate = 0.636 across 26 sessions (relax-mod gameplay).",
+      "Hit-window labels include the full duration of sliders + spinners (not just",
+      "heads), so positives dominate. To prevent the model from collapsing to 'always",
+      "press', we DOWN-weight positives.",
+      "pos_weight ~= neg_freq / pos_freq = (1 - 0.6364) / 0.6364 ~= 0.5714, rounded to 0.57.",
+      "History: 0.3 (1 session), 0.56 (3 sessions, 64.2%), 0.69 (8 sessions, 59.1%), 0.72 (13 sessions, 58.0%), 0.57 (26 sessions, 63.6%)."
     ],
     "label_window_ms_rationale": [
       "Phase 3 clock-fit residual sigma was 46 ms on the main play segment.",

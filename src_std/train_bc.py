@@ -15,7 +15,7 @@ Reads ``configs/training_bc.json`` for model + loss + optim + schedule.
 Outputs (under --out-dir, default ``runs/bc/<UTC YYYYMMDDTHHMMSS>``):
     config.json            — frozen copy of the config that produced this run
     train_log.jsonl        — one JSON line per epoch (train/val metrics)
-    best.pt                — checkpoint with lowest val loss
+    best.pt                — checkpoint with lowest val cursor MAE (px)
     last.pt                — final-epoch checkpoint
 """
 
@@ -190,18 +190,26 @@ def main():
         ds, val_frac=cfg["data"]["val_frac"], seed=0)
     print(f"  split: train={len(train_idx)} val={len(val_idx)}")
 
+    num_workers = cfg["schedule"].get("num_workers", 4)
+    pin = args.device == "cuda"
     train_loader = DataLoader(
         Subset(ds, train_idx),
         batch_size=cfg["schedule"]["batch_size"],
         shuffle=True,
         collate_fn=collate,
         drop_last=True,
+        num_workers=num_workers,
+        persistent_workers=num_workers > 0,
+        pin_memory=pin,
     )
     val_loader = DataLoader(
         Subset(ds, val_idx),
         batch_size=cfg["schedule"]["batch_size"],
         shuffle=False,
         collate_fn=collate,
+        num_workers=num_workers,
+        persistent_workers=num_workers > 0,
+        pin_memory=pin,
     )
 
     model_cfg = BCModelConfig(**cfg["model"]["config"])
@@ -233,7 +241,7 @@ def main():
             json.dump(cfg, f, indent=2)
         log_f = (out_dir / "train_log.jsonl").open("w")
 
-    best_val = float("inf")
+    best_mae = float("inf")
     step = 0
     for ep in range(epochs):
         net.train()
@@ -298,8 +306,9 @@ def main():
         if log_f is not None:
             log_f.write(json.dumps(rec) + "\n")
             log_f.flush()
-        if out_dir is not None and val_loss < best_val:
-            best_val = val_loss
+        mae = val_metrics["cursor_mae_px"]
+        if out_dir is not None and mae < best_mae:
+            best_mae = mae
             torch.save({
                 "epoch": ep,
                 "step": step,

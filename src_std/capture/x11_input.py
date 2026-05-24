@@ -65,6 +65,12 @@ _LIB.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
 _LIB.XKeysymToKeycode.restype = ctypes.c_ubyte
 _LIB.XStringToKeysym.argtypes = [ctypes.c_char_p]
 _LIB.XStringToKeysym.restype = ctypes.c_ulong
+_LIB.XDefaultScreen.argtypes = [ctypes.c_void_p]
+_LIB.XDefaultScreen.restype = ctypes.c_int
+_LIB.XDisplayWidth.argtypes = [ctypes.c_void_p, ctypes.c_int]
+_LIB.XDisplayWidth.restype = ctypes.c_int
+_LIB.XDisplayHeight.argtypes = [ctypes.c_void_p, ctypes.c_int]
+_LIB.XDisplayHeight.restype = ctypes.c_int
 
 
 @dataclass(frozen=True)
@@ -121,6 +127,11 @@ class X11:
         if kc == 0:
             raise RuntimeError(f"no keycode for keysym {keysym_name!r}")
         return int(kc)
+
+    def screen_size(self) -> tuple[int, int]:
+        """Return (width_px, height_px) of the default screen."""
+        scr = _LIB.XDefaultScreen(self._dpy)
+        return int(_LIB.XDisplayWidth(self._dpy, scr)), int(_LIB.XDisplayHeight(self._dpy, scr))
 
     def keys_pressed(self, keycodes: list[int]) -> list[bool]:
         """Return per-keycode pressed state from a single XQueryKeymap call."""

@@ -261,7 +261,7 @@ def _segment_indices(map_t_ms: np.ndarray, gap_ms: int) -> list[tuple[int, int]]
 class _SessionTensors:
     """Per-session arrays after filtering. Indexable by sample index."""
     npz_path: Path
-    frames: np.ndarray            # (M, FRAME_H, FRAME_W) uint8 (60x80)
+    frames: np.ndarray            # (M, FRAME_H, FRAME_W) float32 in [0,1] (60x80)
     cursor_pf: np.ndarray         # (M, 2) float32 (playfield px)
     press: np.ndarray             # (M,) float32 (0 or 1)
     map_ctx: np.ndarray           # (M, K, F_obj) float32
@@ -293,7 +293,7 @@ def _build_one_session(npz_path: Path,
     if len(kept_idx) == 0:
         return _SessionTensors(
             npz_path=npz_path,
-            frames=np.empty((0, FRAME_H, FRAME_W), dtype=np.uint8),
+            frames=np.empty((0, FRAME_H, FRAME_W), dtype=np.float32),
             cursor_pf=np.empty((0, 2), dtype=np.float32),
             press=np.empty((0,), dtype=np.float32),
             map_ctx=np.empty((0, K_TOKENS, F_OBJ), dtype=np.float32),
@@ -303,7 +303,7 @@ def _build_one_session(npz_path: Path,
         )
 
     frames_raw = d["frame"][kept_idx]
-    frames = _resize_stack_to_80x60(frames_raw)
+    frames = (_resize_stack_to_80x60(frames_raw).astype(np.float32) / 255.0)
     cx = d["cursor_x"][kept_idx]
     cy = d["cursor_y"][kept_idx]
     map_t_kept = map_t[kept_idx]
@@ -388,7 +388,7 @@ class OsuStdDataset(Dataset):
         center = int(sess.sample_centers[local])
         stack = sess.frames[center - STACK_LEN + 1: center + 1]
         state = {
-            "frames": torch.from_numpy(stack.astype(np.float32) / 255.0),
+            "frames": torch.from_numpy(stack),
             "map_ctx": torch.from_numpy(sess.map_ctx[center]),
             "state_vec": torch.from_numpy(sess.state_vec[center]),
         }

@@ -27,3 +27,6 @@ runs/
 # secrets
 .env
 .env.local
+
+# editor / tooling
+.claude/

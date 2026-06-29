@@ -1,5 +1,5 @@
 # ai-osu
-Very very action and sloppily written code. I wrote half of it then Also had claude do stuff since I was lazy. 
+Very very bad and sloppily written code. I wrote half of it then Also had claude do stuff since I was lazy. 
 the actual modern version is cleaner and less laggy
 
 Vision-based osu!std bot. Trains a neural net to play osu! Standard from screen pixels + beatmap context, with input injected via X11 / evdev.
